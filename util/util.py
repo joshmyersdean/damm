@@ -7,6 +7,7 @@ import argparse
 from Bio.pairwise2 import format_alignment
 import io
 
+
 def convert(inp: str) -> List[int]:
     """
     https://gist.github.com/amjith/673824
@@ -26,15 +27,15 @@ def convert(inp: str) -> List[int]:
     >>> convert("1-3,2-5,8,10,15-20")
     [1, 2, 3, 2, 3, 4, 5, 8, 10, 15, 16, 17, 18, 19, 20]
     """
-    if not inp: 
+    if not inp:
         return []
     pages = []
     comma_separated = []
-    comma_separated = inp.split(",") 
+    comma_separated = inp.split(",")
     for item in comma_separated:
         if "-" in item:
             a = item.split("-")
-            pages.extend(range(int(a[0]),int(a[1])+1))
+            pages.extend(range(int(a[0]), int(a[1]) + 1))
         else:
             pages.append(int(item))
     return pages
@@ -54,6 +55,7 @@ def clean_csv(fname: str) -> pd.DataFrame:
     df = df.dropna().reset_index(drop=True)
     return df
 
+
 def gen_pdz(fname: str) -> List[Bio.Seq.Seq]:
     '''
     generates list of sequences of human PDZ domains.
@@ -67,7 +69,13 @@ def gen_pdz(fname: str) -> List[Bio.Seq.Seq]:
             records.append(record)
     return records
 
-def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataFrame, inds: List[pd.Series], id: str) -> NoReturn:
+
+def pretty_print_first_match(alignments: Dict[str,
+                                              Dict[str,
+                                                   Any]],
+                             df: pd.DataFrame,
+                             inds: List[pd.Series],
+                             id: str) -> NoReturn:
     '''
     Syntatic sugar helper method for showing user top scoring match.
     params
@@ -80,16 +88,17 @@ def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataF
     alignment = format_alignment(*best_match['alignment'])
     ticks = [" " for i in range(len(best_match['dest']))]
     index = df[df['pdz_domain'] == id].index.values[0]
-    print(f"Input aligned with {id}, alignment score: {best_match['score']} ({int(100*alignment.count('|') / len(best_match['dest']))}%)")
-    for i in range(0,len(ticks)):
+    print(
+        f"Input aligned with {id}, alignment score: {best_match['score']} ({int(100*alignment.count('|') / len(best_match['dest']))}%)")
+    for i in range(0, len(ticks)):
         if i == 0:
             print(" ", end="")
             continue
         if i >= 100:
-            if (i-1) % 10 == 0 or (i-2) % 10 == 0:
+            if (i - 1) % 10 == 0 or (i - 2) % 10 == 0:
                 continue
         else:
-            if (i-1) % 10 == 0:
+            if (i - 1) % 10 == 0:
                 continue
         if i % 10 == 0:
             if i < 100:
@@ -98,13 +107,14 @@ def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataF
                 print(f"{i // 1}", end="")
         else:
             print(" ", end="")
-    
+
     for p in range(7):
         absolute_pos = inds[p][index] - df['1st residue'][index]
         ticks[absolute_pos] = '*'
-    print("\n"+alignment[:alignment.rfind("c")-4], end='\n')
+    print("\n" + alignment[:alignment.rfind("c") - 4], end='\n')
     print(''.join(ticks))
     print()
+
 
 def get_residues_and_track() -> List[int]:
     '''
@@ -127,8 +137,9 @@ def get_residues_and_track() -> List[int]:
     except AssertionError:
         print("Input Error.")
         return get_residues_and_track()
-    positions = list(map(lambda x: x-start, positions))
+    positions = list(map(lambda x: x - start, positions))
     return positions
+
 
 def alignment_index_surgery(weights: List[int], src: Bio.Seq.Seq) -> List[int]:
     '''
@@ -149,7 +160,7 @@ def alignment_index_surgery(weights: List[int], src: Bio.Seq.Seq) -> List[int]:
             if j < track:
                 continue
             while src[track] == '-' and dont_break:
-                if track == len(src)-1:
+                if track == len(src) - 1:
                     dont_break = False
                     break
                 track += 1
@@ -159,7 +170,12 @@ def alignment_index_surgery(weights: List[int], src: Bio.Seq.Seq) -> List[int]:
     return fin_inds
 
 
-def score_based_on_residue(fin_inds: List[int], dest: Bio.Seq.Seq, src: Bio.Seq.Seq, groups: Dict[str, int]) -> Dict[str, int]:
+def score_based_on_residue(fin_inds: List[int],
+                           dest: Bio.Seq.Seq,
+                           src: Bio.Seq.Seq,
+                           groups: Dict[str,
+                                        int]) -> Dict[str,
+                                                      int]:
     '''
     Calculate number of identity and characteristic matches, as well as characteristic match positions.
     params
@@ -188,8 +204,9 @@ def score_based_on_residue(fin_inds: List[int], dest: Bio.Seq.Seq, src: Bio.Seq.
         'identity': identity,
         'characteristic': characteristic,
         'c_inds': characteristic_inds
-    }  
+    }
     return ret_dict
+
 
 def alignment_percentage(alignment: str, length: int) -> float:
     '''
@@ -203,7 +220,10 @@ def alignment_percentage(alignment: str, length: int) -> float:
     numerator = alignment.count('|')
     return numerator / length
 
-def asterisks_for_residues(residues: List[int], fobj: io.TextIOWrapper) -> NoReturn:
+
+def asterisks_for_residues(
+        residues: List[int],
+        fobj: io.TextIOWrapper) -> NoReturn:
     '''
     Writes asterisks where conserved residues exist to file.
     params
@@ -219,13 +239,17 @@ def asterisks_for_residues(residues: List[int], fobj: io.TextIOWrapper) -> NoRet
         track = track + 1
     fobj.write("\n")
 
-def daggers_for_residues(len_seq: int, char_inds: List[int], fobj: io.TextIOWrapper):
+
+def daggers_for_residues(
+        len_seq: int,
+        char_inds: List[int],
+        fobj: io.TextIOWrapper) -> NoReturn:
     '''
     Writes daggers where characteristic matches exit to file.
     params
         residues: list of conserved residues
         char_inds: list of indices where characteristic matches occur
-        fobj: file to write to 
+        fobj: file to write to
     '''
     dagger = u"\u2020"
     fobj.write("\n")
@@ -236,16 +260,33 @@ def daggers_for_residues(len_seq: int, char_inds: List[int], fobj: io.TextIOWrap
             fobj.write(" ")
     fobj.write('\n\n')
 
+
 def get_args() -> argparse.Namespace:
     '''
     Retreives command line arguments.
     returns
         namespace with arguments
     '''
-    parser = argparse.ArgumentParser(description='Match a given FASTA sequence with one of the 272 Human PDZ Domains',
-                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-f', type=str, help='Fasta file containing a single sequence for matching')
-    parser.add_argument('--m', type=int, default=25, help='amount  of matches to show')
-    parser.add_argument('--p', type=str, default=None, help='0-indexed conserved residue positions')
-    parser.add_argument('--v', type=bool, default=True, help='Verbose output: Display file to terminal')
+    parser = argparse.ArgumentParser(
+        description='Match a given FASTA sequence with one of the 272 Human PDZ Domains',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '-f',
+        type=str,
+        help='Fasta file containing a single sequence for matching')
+    parser.add_argument(
+        '--m',
+        type=int,
+        default=25,
+        help='amount  of matches to show')
+    parser.add_argument(
+        '--p',
+        type=str,
+        default=None,
+        help='0-indexed conserved residue positions')
+    parser.add_argument(
+        '--v',
+        type=bool,
+        default=True,
+        help='Verbose output: Display file to terminal')
     return parser.parse_args()
