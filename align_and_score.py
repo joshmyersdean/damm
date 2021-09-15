@@ -15,7 +15,10 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 matrix = substitution_matrices.load("BLOSUM62")
 
 
-def best_align(source: Bio.Seq.Seq, df: pd.DataFrame, records: List[Bio.Seq.Seq], verbose: bool = True) -> List[int]:
+def best_align(source: Bio.Seq.Seq,
+               df: pd.DataFrame,
+               records: List[Bio.Seq.Seq],
+               verbose: bool = True) -> List[int]:
     '''
     Find best aligment for input PDZ domain out of 140 labeled domains.
 
@@ -23,10 +26,10 @@ def best_align(source: Bio.Seq.Seq, df: pd.DataFrame, records: List[Bio.Seq.Seq]
         source: Input PDZ domain
         df: dataframe of labelled data
         records: list of human pdz domains
-        verbose: have verbose terminal output 
+        verbose: have verbose terminal output
     '''
     records = [i for i in records if i.id in df['pdz_domain'].to_list()]
-    inds = [df[x] for x in [str(i) for i in range(1,8)]]
+    inds = [df[x] for x in [str(i) for i in range(1, 8)]]
     iter = tqdm.tqdm(range(len(records))) if verbose else range(len(records))
     all_aligns = {}
 
@@ -42,12 +45,24 @@ def best_align(source: Bio.Seq.Seq, df: pd.DataFrame, records: List[Bio.Seq.Seq]
             'score': align[0].score,
             'alignment': align[0]
         }
-    all_aligns = sorted(all_aligns.items(), key=lambda x: x[1]['score'], reverse=True)
+    all_aligns = sorted(
+        all_aligns.items(),
+        key=lambda x: x[1]['score'],
+        reverse=True)
     all_aligns = dict(all_aligns)
-    util.pretty_print_first_match(all_aligns, df, inds, list(all_aligns.keys())[0])
+    util.pretty_print_first_match(
+        all_aligns, df, inds, list(
+            all_aligns.keys())[0])
     return util.get_residues_and_track()
 
-def all_align(source: Bio.Seq.Seq, df: pd.DataFrame, records: List[Bio.Seq.Seq], residues: List[int], seq_id: str, verbose: bool = True, amt: int = 25) -> NoReturn:
+
+def all_align(source: Bio.Seq.Seq,
+              df: pd.DataFrame,
+              records: List[Bio.Seq.Seq],
+              residues: List[int],
+              seq_id: str,
+              verbose: bool = True,
+              amt: int = 25) -> NoReturn:
     '''
     aligns input PDZ domain with all 272 human PDZ domains. Computes alignment score, identity, and characteristic matches.
 
@@ -62,11 +77,11 @@ def all_align(source: Bio.Seq.Seq, df: pd.DataFrame, records: List[Bio.Seq.Seq],
     '''
     groups = {
         "A": "1", "I": "1", "L": "1", "V": "1",
-        "D": "2", "E":"2", "K": "3", "R": "3", "H": "3",
+        "D": "2", "E": "2", "K": "3", "R": "3", "H": "3",
         "F": "4", "Y": "4", "W": "4", "S": "5", "T": "5",
         "N": "5", "Q": "5", "M": "5", "C": "5", "G": "-1", "P": "-2"
     }
-    
+
     iter = tqdm.tqdm(range(len(records))) if verbose else range(len(records))
 
     all_aligns = {}
@@ -82,18 +97,28 @@ def all_align(source: Bio.Seq.Seq, df: pd.DataFrame, records: List[Bio.Seq.Seq],
             'score': align[0].score,
             'alignment': align[0],
             'fmt': format_alignment(*align[0])
-        } 
-    all_aligns = sorted(all_aligns.items(), key=lambda x: x[1]['score'], reverse=True)
+        }
+    all_aligns = sorted(
+        all_aligns.items(),
+        key=lambda x: x[1]['score'],
+        reverse=True)
     all_aligns = dict(all_aligns)
 
     for _, val in all_aligns.items():
         src = val['src']
         dest = val['dest']
         fin_inds = util.alignment_index_surgery(residues, src)
-        res_score_dict = util.score_based_on_residue(fin_inds, dest, src, groups)
+        res_score_dict = util.score_based_on_residue(
+            fin_inds, dest, src, groups)
         val.update(res_score_dict)
 
-    all_aligns = sorted(all_aligns.items(), key=lambda v: (v[1]['score'], v[1]['identity'], v[1]['characteristic']), reverse=True)
+    all_aligns = sorted(
+        all_aligns.items(),
+        key=lambda v: (
+            v[1]['score'],
+            v[1]['identity'],
+            v[1]['characteristic']),
+        reverse=True)
     all_aligns = dict(all_aligns)
     count = 0
     os.makedirs('results', exist_ok=True)
@@ -129,4 +154,3 @@ if __name__ == '__main__':
     else:
         residues = best_align(src, df, records)
     all_align(src, df, records, residues, fname, args.v, args.m)
-    
