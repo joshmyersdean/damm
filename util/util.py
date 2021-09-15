@@ -3,7 +3,10 @@ __author__ = 'Josh Myers-Dean'
 import pandas as pd
 from typing import List, Dict, Any, NoReturn, Tuple
 import Bio
+
 from Bio.pairwise2 import format_alignment
+import io
+
 
 def convert(inp):
     """
@@ -71,8 +74,6 @@ def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataF
         if i == 0:
             print(" ", end="")
             continue
-        # if i == len(ticks)-1:
-        #     print("", end="\n")
         if i >= 100:
             if (i-1) % 10 == 0 or (i-2) % 10 == 0:
                 continue
@@ -94,7 +95,7 @@ def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataF
     print(''.join(ticks))
     print()
 
-def get_residues_and_start() -> List[int]:
+def get_residues_and_track() -> List[int]:
     print("Input 7 Positions (1-indexed):\n\tex: 1,2,3,4,5,6,7")
     positions = input("Input positions: ").strip()
     positions = convert(positions)
@@ -106,8 +107,84 @@ def get_residues_and_start() -> List[int]:
         assert sorted(positions) == positions, 'Positions must be sorted'
         assert start > 0, 'Starting index must be positive'
     except AssertionError:
-        return get_residues_and_start()
+        print("Input Error.")
+        return get_residues_and_track()
     positions = list(map(lambda x: x-start, positions))
     return positions
 
-    
+def alignment_index_surgery(weights: List[int], src: Bio.Seq.Seq) -> List[int]:
+    '''
+    TODO
+    '''
+    fin_inds = []
+
+    for i in weights:
+        tmp_inds = []
+        track = 0
+        dont_break = True
+        for j in range(len(src)):
+            if j < track:
+                continue
+            while src[track] == '-' and dont_break:
+                if track == len(src)-1:
+                    dont_break = False
+                    break
+                track += 1
+            tmp_inds.append(track)
+            track += 1
+        fin_inds.append(tmp_inds[i])
+    return fin_inds
+
+
+def score_based_on_residue(fin_inds: List[int], dest: Bio.Seq.Seq, src: Bio.Seq.Seq, groups: Dict[str, int]) -> Dict[str, int]:
+    identity = 0
+    characteristic = 0
+    characteristic_inds = []
+    for ind in fin_inds:
+        if ind > len(dest):
+            continue
+        if src[ind] == '-' or dest[ind] == '-':
+            continue
+        elif src[ind] == dest[ind]:
+            identity += 1
+        elif groups[src[ind]] == groups[dest[ind]]:
+            characteristic += 1
+            characteristic_inds.append(ind)
+
+    ret_dict = {
+        'identity': identity,
+        'characteristic': characteristic,
+        'c_inds': characteristic_inds
+    }  
+    return ret_dict
+
+def alignment_percentage(alignment: str, length: int) -> float:
+    '''
+    TODO
+    '''
+    numerator = alignment.count('|')
+    return numerator / length
+
+def asterisks_for_residues(residues: List[int], fobj: io.TextIOWrapper):
+    track = 0
+    for i in residues:
+        while (track < i):
+            fobj.write(" ")
+            track = track + 1
+        fobj.write('*')
+        track = track + 1
+    fobj.write("\n")
+
+def daggers_for_residues(len_seq: int, char_inds: List[int], fobj: io.TextIOWrapper):
+    '''
+    TOOD
+    '''
+    dagger = u"\u2020"
+    for idx in range(len_seq):
+        if idx in char_inds:
+            fobj.write(dagger)
+        else:
+            fobj.write(" ")
+    fobj.write('\n\n')
+
+
