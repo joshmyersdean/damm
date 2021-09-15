@@ -3,12 +3,11 @@ __author__ = 'Josh Myers-Dean'
 import pandas as pd
 from typing import List, Dict, Any, NoReturn, Tuple
 import Bio
-
+import argparse
 from Bio.pairwise2 import format_alignment
 import io
 
-
-def convert(inp):
+def convert(inp: str) -> List[int]:
     """
     https://gist.github.com/amjith/673824
     * Get the input from user.
@@ -27,11 +26,11 @@ def convert(inp):
     >>> convert("1-3,2-5,8,10,15-20")
     [1, 2, 3, 2, 3, 4, 5, 8, 10, 15, 16, 17, 18, 19, 20]
     """
-    if not inp:  # empty string must return an empty list
+    if not inp: 
         return []
     pages = []
     comma_separated = []
-    comma_separated = inp.split(",")     # split the input string based on comma delimitation
+    comma_separated = inp.split(",") 
     for item in comma_separated:
         if "-" in item:
             a = item.split("-")
@@ -43,8 +42,12 @@ def convert(inp):
 
 def clean_csv(fname: str) -> pd.DataFrame:
     '''
-    TODO
+    Cleans up columns in dataframe for downstream use.
+
+    params
+        fname: name of csv file
     '''
+
     df = pd.read_csv(fname)
     df = df.drop(columns=df.columns[-1])
     df['pdz_domain'] = df['pdz_domain'].apply(lambda x: x.replace('>', ''))
@@ -53,8 +56,11 @@ def clean_csv(fname: str) -> pd.DataFrame:
 
 def gen_pdz(fname: str) -> List[Bio.Seq.Seq]:
     '''
-    TODO
+    generates list of sequences of human PDZ domains.
+    params
+        fname: name of uniprot file.
     '''
+
     records = []
     with open(fname, 'r') as handle:
         for record in Bio.SeqIO.parse(handle, 'fasta'):
@@ -63,7 +69,12 @@ def gen_pdz(fname: str) -> List[Bio.Seq.Seq]:
 
 def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataFrame, inds: List[pd.Series], id: str) -> NoReturn:
     '''
-    TODO
+    Syntatic sugar helper method for showing user top scoring match.
+    params
+        alignments: Dictionary of alignments with score, sequences, alignment.
+        df: pandas dataframe of labelled domains
+        inds: labelled indices of pdz domains
+        id: name of top scoring PDZ domain
     '''
     best_match = alignments[id]
     alignment = format_alignment(*best_match['alignment'])
@@ -96,6 +107,13 @@ def pretty_print_first_match(alignments: Dict[str, Dict[str, Any]], df: pd.DataF
     print()
 
 def get_residues_and_track() -> List[int]:
+    '''
+    Gets user input of conserved residues and shifts to 0 indexed values.
+    returns
+        list of residues
+    raises
+        AssertionError: must enter 7 positions, must be sorted, start must be positive
+    '''
     print("Input 7 Positions (1-indexed):\n\tex: 1,2,3,4,5,6,7")
     positions = input("Input positions: ").strip()
     positions = convert(positions)
@@ -114,7 +132,12 @@ def get_residues_and_track() -> List[int]:
 
 def alignment_index_surgery(weights: List[int], src: Bio.Seq.Seq) -> List[int]:
     '''
-    TODO
+    Get positions of conserved residues after alignment to account for gaps.
+    params
+        weights: List of conserved residues
+        src: input PDZ domain
+    returns
+        List of aligned residues
     '''
     fin_inds = []
 
@@ -137,6 +160,16 @@ def alignment_index_surgery(weights: List[int], src: Bio.Seq.Seq) -> List[int]:
 
 
 def score_based_on_residue(fin_inds: List[int], dest: Bio.Seq.Seq, src: Bio.Seq.Seq, groups: Dict[str, int]) -> Dict[str, int]:
+    '''
+    Calculate number of identity and characteristic matches, as well as characteristic match positions.
+    params
+        find_inds: aligned indices for residues
+        dest: destination PDZ domain
+        src: source PDZ domain
+        groups: Characteristic residue groups
+    returns
+        dictionary of number of identity matches, characteristic matches, and characteristic indices
+    '''
     identity = 0
     characteristic = 0
     characteristic_inds = []
@@ -160,12 +193,23 @@ def score_based_on_residue(fin_inds: List[int], dest: Bio.Seq.Seq, src: Bio.Seq.
 
 def alignment_percentage(alignment: str, length: int) -> float:
     '''
-    TODO
+    Calculates percentage of alignment matches/
+    params
+        alignment: formatted alignment
+        length: length of alignment including gaps
+    returns
+        alignment percentage
     '''
     numerator = alignment.count('|')
     return numerator / length
 
-def asterisks_for_residues(residues: List[int], fobj: io.TextIOWrapper):
+def asterisks_for_residues(residues: List[int], fobj: io.TextIOWrapper) -> NoReturn:
+    '''
+    Writes asterisks where conserved residues exist to file.
+    params
+        residues: list of conserved residues
+        fobj: file to write to
+    '''
     track = 0
     for i in residues:
         while (track < i):
@@ -177,9 +221,14 @@ def asterisks_for_residues(residues: List[int], fobj: io.TextIOWrapper):
 
 def daggers_for_residues(len_seq: int, char_inds: List[int], fobj: io.TextIOWrapper):
     '''
-    TOOD
+    Writes daggers where characteristic matches exit to file.
+    params
+        residues: list of conserved residues
+        char_inds: list of indices where characteristic matches occur
+        fobj: file to write to 
     '''
     dagger = u"\u2020"
+    fobj.write("\n")
     for idx in range(len_seq):
         if idx in char_inds:
             fobj.write(dagger)
@@ -187,4 +236,16 @@ def daggers_for_residues(len_seq: int, char_inds: List[int], fobj: io.TextIOWrap
             fobj.write(" ")
     fobj.write('\n\n')
 
-
+def get_args() -> argparse.Namespace:
+    '''
+    Retreives command line arguments.
+    returns
+        namespace with arguments
+    '''
+    parser = argparse.ArgumentParser(description='Match a given FASTA sequence with one of the 272 Human PDZ Domains',
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-f', type=str, help='Fasta file containing a single sequence for matching')
+    parser.add_argument('--m', type=int, default=25, help='amount  of matches to show')
+    parser.add_argument('--p', type=str, default=None, help='0-indexed conserved residue positions')
+    parser.add_argument('--v', type=bool, default=True, help='Verbose output: Display file to terminal')
+    return parser.parse_args()
