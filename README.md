@@ -21,7 +21,7 @@ If you wish to bypass this initial matching step you can simply provide the **0-
 ```bash
 $ python align_and_score.py -f {FASTA} --p {p1,p2,p3,p4,p5,p6,p7}
 
-nput aligned with APBA1-2, alignment score: 258.0 (41%)
+input aligned with APBA1-2, alignment score: 258.0 (41%)
          10        20        30        40        50        60        70        80        90        100       110       120       130       140       150       160       170       180  
 EFKDVFIEKQKGEILGVVIVESGWGSILPTVIIANMMHGGPAEKSGKLNIGDQIMSINGTSLVGLPLSTCQSIIKGLKNQSRVKLNIVRCPPVTTVLIRRPDLRYQLGFSVQNGIICSLMRGGIAERGGVRVGHRIIEINGQSVVATPHEKIVHILSNAVGEIHMKTMPAAMYRLLTAQEQPVYI
                                                                                               ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||               
