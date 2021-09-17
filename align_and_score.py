@@ -128,7 +128,7 @@ def all_align(source: Bio.Seq.Seq,
                 break
             length = len(val['src'])
             alignment_pct = util.alignment_percentage(val['fmt'], length) * 100
-            header = f"PDZ domain {id} has an alignment score of {val['score']} ({alignment_pct:.2f})%"
+            header = f"PDZ domain {id} has an alignment score of {val['score']} ({alignment_pct:.2f}%)"
             matches = f"\tMatching score is composed of {val['identity']} identity matches and {val['characteristic']} characteristic matches"
             f.write(header + "\n")
             f.write(matches + "\n")

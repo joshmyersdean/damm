@@ -1,0 +1,16 @@
+INPUTS:
+  motif: HSETAL
+  proteome: data/mbroc.fasta
+
+CONSTRAINTS:
+  # possible positions: p0, p-1, p-2, p-3, p-4, p-5
+  p0: ['F', 'I', 'L', 'V']
+  p-2: ['S', 'T']
+  max_subs: 2
+
+RESULTS:
+  save_dir: results
+  file_name: HSETAL-mbroc.fasta
+
+MISC:
+  verbose: True
