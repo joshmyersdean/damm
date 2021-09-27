@@ -143,7 +143,7 @@ def all_align(source: Bio.Seq.Seq,
 
 if __name__ == '__main__':
     args = util.get_args()
-    df = util.clean_csv('data/preds - preds.csv')
+    df = util.clean_csv('data/pdz_annotations.csv')
     records = util.gen_pdz('data/uniprot_pdz_homosapiens_byDOMAIN_PCLOfix.txt')
     source = SeqIO.parse(args.f, 'fasta')
     fname = args.f.split('/')[-1].replace('.fasta', '')
