@@ -1,5 +1,5 @@
 # DAMM - Domain Analysis and Motif Matcher
-
+[Paper](https://www.mdpi.com/1420-3049/26/19/6034)
 
 ## Requirements
 Python 3.6 or greater
@@ -87,3 +87,20 @@ subs                    match            matchSeq        src
 
 ## Development
 All development was done on MacOS and Ubuntu 20.04 and is not tested on Windows.
+
+## Citation
+If you find our work useful, please consider citing.
+```
+@Article{molecules26196034,
+AUTHOR = {Wofford, Haley A. and Myers-Dean, Josh and Vogel, Brandon A. and Alamo, Kevin Alexander Estrada and Longshore-Neate, Frederick A. and Jagodzinski, Filip and Amacher, Jeanine F.},
+TITLE = {Domain Analysis and Motif Matcher (DAMM): A Program to Predict Selectivity Determinants in Monosiga brevicollis PDZ Domains Using Human PDZ Data},
+JOURNAL = {Molecules},
+VOLUME = {26},
+YEAR = {2021},
+NUMBER = {19},
+ARTICLE-NUMBER = {6034},
+URL = {https://www.mdpi.com/1420-3049/26/19/6034},
+ISSN = {1420-3049},
+DOI = {10.3390/molecules26196034}
+}
+```
